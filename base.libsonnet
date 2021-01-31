@@ -21,7 +21,7 @@ local kp =
     },
     ingress+:: {
       'prometheus-k8s': {
-        apiVersion: 'networking.k8s.io/v1beta',
+        apiVersion: 'networking.k8s.io/v1beta1',
         kind: 'Ingress',
         metadata: {
           name: $.prometheus.prometheus.metadata.name,
