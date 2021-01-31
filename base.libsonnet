@@ -33,10 +33,8 @@ local kp =
             http: {
               paths: [{
                 backend: {
-                  service: {
-                    name: $.prometheus.service.metadata.name,
-                    port: 'web',
-                  },
+                  serviceName: $.prometheus.service.metadata.name,
+                  servicePort: 'web',
                 },
               }],
             },
