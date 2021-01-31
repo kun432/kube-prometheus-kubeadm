@@ -26,6 +26,9 @@ local kp =
         metadata: {
           name: $.prometheus.prometheus.metadata.name,
           namespace: $.prometheus.prometheus.metadata.namespace,
+          annotations: {
+            'kubernetes.io/ingress.class': 'nginx',
+          },
         },
         spec: {
           rules: [{
