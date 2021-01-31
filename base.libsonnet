@@ -3,7 +3,7 @@ local kp =
   // Uncomment the following imports to enable its patches
   (import 'kube-prometheus/kube-prometheus-anti-affinity.libsonnet') +
   // (import 'kube-prometheus/kube-prometheus-managed-cluster.libsonnet') +
-  (import 'kube-prometheus/kube-prometheus-node-ports.libsonnet') +
+  //(import 'kube-prometheus/kube-prometheus-node-ports.libsonnet') +
   // (import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
   // (import 'kube-prometheus/kube-prometheus-thanos-sidecar.libsonnet') +
   // (import 'kube-prometheus/kube-prometheus-custom-metrics.libsonnet') +
@@ -12,7 +12,39 @@ local kp =
     _config+:: {
       namespace: 'monitoring',
     },
-  };
+    prometheus+:: {
+      prometheus+: {
+        spec+: {
+          externalUrl: 'http://prometheus.internal',
+        },
+      },
+    },
+    ingress+:: {
+      'prometheus-k8s': {
+        apiVersion: 'networking.k8s.io/v1',
+        kind: 'Ingress',
+        metadata: {
+          name: $.prometheus.prometheus.metadata.name,
+          namespace: $.prometheus.prometheus.metadata.namespace,
+        },
+        spec: {
+          rules: [{
+            host: 'prometheus.internal',
+            http: {
+              paths: [{
+                backend: {
+                  service: {
+                    name: $.prometheus.service.metadata.name,
+                    port: 'web',
+                  },
+                },
+              }],
+            },
+          }],
+        },
+      },
+    },
+  }
 
 { ['setup/0namespace-' + name]: kp.kubePrometheus[name] for name in std.objectFields(kp.kubePrometheus) } +
 {
