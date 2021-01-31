@@ -21,7 +21,7 @@ local kp =
     },
     ingress+:: {
       'prometheus-k8s': {
-        apiVersion: 'networking.k8s.io/v1',
+        apiVersion: 'networking.k8s.io/v1beta',
         kind: 'Ingress',
         metadata: {
           name: $.prometheus.prometheus.metadata.name,
@@ -44,7 +44,7 @@ local kp =
         },
       },
     },
-  }
+  };
 
 { ['setup/0namespace-' + name]: kp.kubePrometheus[name] for name in std.objectFields(kp.kubePrometheus) } +
 {
@@ -59,4 +59,4 @@ local kp =
 { ['prometheus-' + name]: kp.prometheus[name] for name in std.objectFields(kp.prometheus) } +
 { ['prometheus-adapter-' + name]: kp.prometheusAdapter[name] for name in std.objectFields(kp.prometheusAdapter) } +
 { ['grafana-' + name]: kp.grafana[name] for name in std.objectFields(kp.grafana) } +
-{ ['ingress-' + name]: kp.ingress[name] for name in std.objectFields(kp.ingress) };
+{ ['ingress-' + name]: kp.ingress[name] for name in std.objectFields(kp.ingress) }
