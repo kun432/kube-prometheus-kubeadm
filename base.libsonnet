@@ -11,6 +11,15 @@ local kp =
   {
     _config+:: {
       namespace: 'monitoring',
+      grafana+:: {
+        config+: {
+          sections+: {
+            server+: {
+              root_url: 'http://grafana.internal/',
+            },
+          },
+        },
+      },
     },
     prometheus+:: {
       prometheus+: {
@@ -69,6 +78,30 @@ local kp =
                 backend: {
                   serviceName: $.alertmanager.service.metadata.name,
                   servicePort: 'web',
+                },
+              }],
+            },
+          }],
+        },
+      },
+      'grafana': {
+        apiVersion: 'networking.k8s.io/v1beta1',
+        kind: 'Ingress',
+        metadata: {
+          name: $.grafana.grafana.metadata.name,
+          namespace: $.grafana.grafana.metadata.namespace,
+          annotations: {
+            'kubernetes.io/ingress.class': 'nginx',
+          },
+        },
+        spec: {
+          rules: [{
+            host: 'grafana.internal',
+            http: {
+              paths: [{
+                backend: {
+                  serviceName: $.grafana.service.metadata.name,
+                  servicePort: 'http',
                 },
               }],
             },
