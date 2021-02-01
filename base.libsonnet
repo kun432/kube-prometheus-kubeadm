@@ -19,6 +19,13 @@ local kp =
         },
       },
     },
+    alertmanager+:: {
+      alertmanager+: {
+        spec+: {
+          externalUrl: 'http://alertmanager.internal',
+        },
+      },
+    },
     ingress+:: {
       'prometheus-k8s': {
         apiVersion: 'networking.k8s.io/v1beta1',
@@ -37,6 +44,30 @@ local kp =
               paths: [{
                 backend: {
                   serviceName: $.prometheus.service.metadata.name,
+                  servicePort: 'web',
+                },
+              }],
+            },
+          }],
+        },
+      },
+      'alertmanager-main': {
+        apiVersion: 'networking.k8s.io/v1beta1',
+        kind: 'Ingress',
+        metadata: {
+          name: $.alertmanager.alertmanager.metadata.name,
+          namespace: $.alertmanager.alertmanager.metadata.namespace,
+          annotations: {
+            'kubernetes.io/ingress.class': 'nginx',
+          },
+        },
+        spec: {
+          rules: [{
+            host: 'alertmanager.internal',
+            http: {
+              paths: [{
+                backend: {
+                  serviceName: $.alertmanager.service.metadata.name,
                   servicePort: 'web',
                 },
               }],
