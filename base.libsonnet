@@ -1,13 +1,8 @@
 local kp =
   (import 'kube-prometheus/kube-prometheus.libsonnet') +
-  // Uncomment the following imports to enable its patches
   (import 'kube-prometheus/kube-prometheus-anti-affinity.libsonnet') +
-  // (import 'kube-prometheus/kube-prometheus-managed-cluster.libsonnet') +
-  //(import 'kube-prometheus/kube-prometheus-node-ports.libsonnet') +
-  // (import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
-  // (import 'kube-prometheus/kube-prometheus-thanos-sidecar.libsonnet') +
-  // (import 'kube-prometheus/kube-prometheus-custom-metrics.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-kubeadm.libsonnet') + 
+  (import 'kube-prometheus/kube-prometheus-node-ports.libsonnet') +
   {
     _config+:: {
       namespace: 'monitoring',
@@ -15,7 +10,7 @@ local kp =
         config+: {
           sections+: {
             server+: {
-              root_url: 'http://grafana.internal/',
+              root_url: 'http://proxy.internal/grafana',
             },
           },
         },
@@ -24,14 +19,14 @@ local kp =
     prometheus+:: {
       prometheus+: {
         spec+: {
-          externalUrl: 'http://prometheus.internal',
+          externalUrl: 'http://proxy.internal/prometheus',
         },
       },
     },
     alertmanager+:: {
       alertmanager+: {
         spec+: {
-          externalUrl: 'http://alertmanager.internal',
+          externalUrl: 'http://proxy.internal/alertmanager',
         },
       },
     },
@@ -44,13 +39,14 @@ local kp =
           namespace: $.prometheus.prometheus.metadata.namespace,
           annotations: {
             'kubernetes.io/ingress.class': 'nginx',
+            'nginx.ingress.kubernetes.io/rewrite-target': '/$2',
           },
         },
         spec: {
           rules: [{
-            host: 'prometheus.internal',
             http: {
               paths: [{
+                path: '/prometheus(/|$)(.*)',
                 backend: {
                   serviceName: $.prometheus.service.metadata.name,
                   servicePort: 'web',
@@ -68,13 +64,14 @@ local kp =
           namespace: $.alertmanager.alertmanager.metadata.namespace,
           annotations: {
             'kubernetes.io/ingress.class': 'nginx',
+            'nginx.ingress.kubernetes.io/rewrite-target': '/$2',
           },
         },
         spec: {
           rules: [{
-            host: 'alertmanager.internal',
             http: {
               paths: [{
+                path: '/alertmanager(/|$)(.*)',
                 backend: {
                   serviceName: $.alertmanager.service.metadata.name,
                   servicePort: 'web',
@@ -88,19 +85,20 @@ local kp =
         apiVersion: 'networking.k8s.io/v1beta1',
         kind: 'Ingress',
         metadata: {
-          name: $.grafana.grafana.metadata.name,
-          namespace: $.grafana.grafana.metadata.namespace,
+          name: 'grafana',
+          namespace: 'monitoring',
           annotations: {
             'kubernetes.io/ingress.class': 'nginx',
+            'nginx.ingress.kubernetes.io/rewrite-target': '/$2',
           },
         },
         spec: {
           rules: [{
-            host: 'grafana.internal',
             http: {
               paths: [{
+                path: '/grafana(/|$)(.*)',
                 backend: {
-                  serviceName: $.grafana.service.metadata.name,
+                  serviceName: 'grafana',
                   servicePort: 'http',
                 },
               }],
